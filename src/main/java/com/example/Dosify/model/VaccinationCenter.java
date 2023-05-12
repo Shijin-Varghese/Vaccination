@@ -32,7 +32,4 @@ public class VaccinationCenter {
 
     @OneToMany(mappedBy = "vaccinationCenter",cascade = CascadeType.ALL)
     List<Doctor> doctors = new ArrayList<>();
-
-    @OneToMany(mappedBy = "vaccinationCenter",cascade = CascadeType.ALL)
-    List<Appointment> appointments = new ArrayList<>();
 }
