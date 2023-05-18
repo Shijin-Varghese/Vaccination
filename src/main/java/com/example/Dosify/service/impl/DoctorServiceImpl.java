@@ -7,12 +7,14 @@ import com.example.Dosify.exception.CenterNotPresentException;
 import com.example.Dosify.model.Doctor;
 import com.example.Dosify.model.VaccinationCenter;
 import com.example.Dosify.repository.CenterRepository;
+import com.example.Dosify.repository.DoctorRepository;
 import com.example.Dosify.service.DoctorService;
 import com.example.Dosify.transformer.DoctorTransformer;
 import com.example.Dosify.transformer.VaccinationCenterTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -40,5 +42,13 @@ public class DoctorServiceImpl implements DoctorService {
 
         // prepare response Dto
         return DoctorTransformer.DoctorToDoctorResponseDto(doctor);
+    }
+
+    @Override
+    public List<Doctor> getdoctoraboveage(int x) throws Exception {
+        List<Doctor>docs= DoctorRepository.findByAge(x);
+        if(docs.size()==0)
+             throw new Exception("No doctor found above "+x+"age");
+        return docs;
     }
 }

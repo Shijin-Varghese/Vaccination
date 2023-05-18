@@ -38,8 +38,8 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Autowired
     Dose2Service dose2Service;
 
-    @Autowired
-    private JavaMailSender emailSender;
+//    @Autowired
+//    private JavaMailSender emailSender;
 
     @Override
     public AppointmentResponseDto bookAppointment(AppointmentRequestDto appointmentRequestDto) throws UserNotFoundException, DoctorNotFoundException, NotEligibleForDoseException {
@@ -88,13 +88,13 @@ public class AppointmentServiceImpl implements AppointmentService {
         doctorRepository.save(doctor);
 
         // send email
-        String text = "Congrats!!" + user.getName() + " Your dose "+ appointmentRequestDto.getDoseNo() + " has been booked!!";
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom("backendmaydosify@gmail.com");
-        message.setTo(user.getEmailId());
-        message.setSubject("Appointment Booked !!!");
-        message.setText(text);
-        emailSender.send(message);
+//        String text = "Congrats!!" + user.getName() + " Your dose "+ appointmentRequestDto.getDoseNo() + " has been booked!!";
+//        SimpleMailMessage message = new SimpleMailMessage();
+//        message.setFrom("backendmaydosify@gmail.com");
+//        message.setTo(user.getEmailId());
+//        message.setSubject("Appointment Booked !!!");
+//        message.setText(text);
+//        emailSender.send(message);
 
 
         // prepare response dto

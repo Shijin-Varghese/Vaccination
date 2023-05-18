@@ -18,7 +18,6 @@ public class VaccinationCenterController {
 
     @PostMapping("/add")
     public ResponseEntity addVaccinationCenter(@RequestBody CenterRequestDto centerRequestDto){
-
         CenterResponseDto centerResponseDto = vaccinationCenterService.addCenter(centerRequestDto);
         return new ResponseEntity(centerResponseDto, HttpStatus.CREATED);
     }
