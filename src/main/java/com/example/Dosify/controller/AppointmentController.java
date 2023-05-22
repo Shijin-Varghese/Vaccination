@@ -6,6 +6,7 @@ import com.example.Dosify.exception.DoctorNotFoundException;
 import com.example.Dosify.exception.NotEligibleForDoseException;
 import com.example.Dosify.exception.UserNotFoundException;
 import com.example.Dosify.service.AppointmentService;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class AppointmentController {
     AppointmentService appointmentService;
 
     @PostMapping("/book")
-    public AppointmentResponseDto bookAppointment(@RequestBody AppointmentRequestDto appointmentRequestDto) throws UserNotFoundException, DoctorNotFoundException, UnknownServiceException, NotEligibleForDoseException {
+    public AppointmentResponseDto bookAppointment(@RequestBody AppointmentRequestDto appointmentRequestDto) throws UserNotFoundException, DoctorNotFoundException, UnknownServiceException, NotEligibleForDoseException, MessagingException {
 
         return appointmentService.bookAppointment(appointmentRequestDto);
     }

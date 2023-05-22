@@ -31,21 +31,41 @@ public class DoctorController {
     }
 
     // get all the doctors who have more than x appointment
+    @GetMapping("/getdoctwithatleastxappointment")
+    public ResponseEntity getdoctwithatleastxappointment(@RequestParam int x){
+        try{
+            List<DoctorResponseDto> docs=doctorService.getdoctwithatleastxappointment(x);
+            return new ResponseEntity(docs,HttpStatus.FOUND);
+        }
+        catch(Exception e){
+            return new ResponseEntity(e.getMessage(),HttpStatus.NOT_FOUND);
+        }
+    }
+    // get all the male doctors whose age is above 40
       @GetMapping("/getdoctoraboveage")
         public ResponseEntity getdoctoraboveage(@RequestParam int x){
-            int cnt=0;
-            try{
-                List<Doctor> docs=doctorService.getdoctoraboveage(x);
-                return new ResponseEntity(docs,HttpStatus.OK);
-            }
+          try{
+              List<Doctor> docs=doctorService.getdoctoraboveage(x);
+              return new ResponseEntity(docs,HttpStatus.OK);
+          }
             catch(Exception e){
-                 return new ResponseEntity(e.getMessage(),HttpStatus.NOT_FOUND);
+                return new ResponseEntity(e.getMessage(),HttpStatus.NOT_FOUND);
 
             }
-        }
-    // get all the male doctors whose age is above 40
 
-    // get the ratio of male to female doctors
+      }
+
+    // get the ratio of male to female doctor
 
     //update the details based on email id of the doctor
+    @PutMapping("/updateemailofdoctor")
+    public ResponseEntity updateemailofdoctor(@RequestParam String email,@RequestParam String newemail){
+        try{
+
+            return new ResponseEntity(doctorService.updateemailofdoctor(email,newemail),HttpStatus.OK);
+        }
+        catch(Exception e){
+            return new ResponseEntity(e.getMessage(),HttpStatus.OK);
+        }
+    }
 }

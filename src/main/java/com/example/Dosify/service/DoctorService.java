@@ -12,4 +12,8 @@ public interface DoctorService {
     public DoctorResponseDto addDoctor(DoctorRequestDto doctorRequestDto) throws CenterNotPresentException;
 
     List<Doctor> getdoctoraboveage(int x) throws Exception;
+
+    List<DoctorResponseDto> getdoctwithatleastxappointment(int x) throws Exception;
+
+    String updateemailofdoctor(String email,String e) throws Exception;
 }

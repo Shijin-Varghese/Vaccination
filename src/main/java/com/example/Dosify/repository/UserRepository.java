@@ -18,7 +18,7 @@ public interface UserRepository extends JpaRepository<User,Integer> {
     List<User> userwithnodose2taken();
     @Query(value="select * from user s where s.is_dose1_taken=true& is_dose2_taken=true; ",nativeQuery = true)
     List<User> userwithalldosetaken();
-//    @Query(value="select * from user s where s.is_dose1_taken=false & s.gender=male;",nativeQuery = true)
-//    List<User> malewithnodosetaken();
+    @Query(value="select * from user s where s.is_dose1_taken=false & s.gender='MALE'",nativeQuery = true)
+    List<User> malewithnodosetaken();
 //     findByMobNo(String mob);
 }

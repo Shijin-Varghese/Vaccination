@@ -4,8 +4,10 @@ import com.example.Dosify.dto.RequestDTO.DoctorRequestDto;
 import com.example.Dosify.dto.ResponseDTO.CenterResponseDto;
 import com.example.Dosify.dto.ResponseDTO.DoctorResponseDto;
 import com.example.Dosify.exception.CenterNotPresentException;
+import com.example.Dosify.model.Appointment;
 import com.example.Dosify.model.Doctor;
 import com.example.Dosify.model.VaccinationCenter;
+import com.example.Dosify.repository.AppointmentRepository;
 import com.example.Dosify.repository.CenterRepository;
 import com.example.Dosify.repository.DoctorRepository;
 import com.example.Dosify.service.DoctorService;
@@ -14,6 +16,7 @@ import com.example.Dosify.transformer.VaccinationCenterTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,7 +25,10 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Autowired
     CenterRepository centerRepository;
-
+    @Autowired
+    AppointmentRepository appointmentRepository;
+@Autowired
+DoctorRepository doctorRepository;
     public DoctorResponseDto addDoctor(DoctorRequestDto doctorRequestDto) throws CenterNotPresentException {
 
        Optional<VaccinationCenter> optionalCenter = centerRepository.findById(doctorRequestDto.getCenterId());
@@ -46,9 +52,44 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public List<Doctor> getdoctoraboveage(int x) throws Exception {
-        List<Doctor>docs= DoctorRepository.findByAge(x);
-        if(docs.size()==0)
-             throw new Exception("No doctor found above "+x+"age");
-        return docs;
+        List<Doctor>docs= doctorRepository.findAll();
+//        System.out.println(docs.size()+"sdflfhekl");
+        List<Doctor>ans=new ArrayList<>();
+        for(Doctor d:docs){
+            if(d.getAge()>x){
+                ans.add(d);
+            }
+        }
+        if(ans.size()==0)
+            throw new Exception("No doctor found with atleast " +x+ " age");
+        return ans;
+    }
+
+    @Override
+    public List<DoctorResponseDto> getdoctwithatleastxappointment(int x) throws Exception {
+        List<Appointment>docs= appointmentRepository.findAll();
+            List<DoctorResponseDto>ans=new ArrayList<>();
+        for(Appointment app:docs){
+               Doctor d=app.getDoctor();
+               if(d.getAppointments().size()>x){
+                   DoctorResponseDto drd=DoctorTransformer.DoctorToDoctorResponseDto(d);
+                   ans.add(drd);
+               }
+
+        }
+        if(ans.size()==0)
+            throw new Exception("No doctor found with atleast " +x+ " appointments");
+        return ans;
+    }
+
+    @Override
+    public String updateemailofdoctor(String email,String e) throws Exception {
+        Optional<Doctor>doc=doctorRepository.findByEmailId(email);
+        if(doc.isEmpty())
+             throw new Exception("Doctor not found with"+" "+email+" as email");
+        Doctor doctor=doc.get();
+        doctor.setEmailId(e);
+        doctorRepository.save(doctor);
+        return "Email updated";
     }
 }

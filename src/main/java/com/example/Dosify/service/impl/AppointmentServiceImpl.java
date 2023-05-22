@@ -1,9 +1,11 @@
 package com.example.Dosify.service.impl;
 
 import com.example.Dosify.Enum.DoseNo;
+import com.example.Dosify.PDFGenerator;
 import com.example.Dosify.dto.RequestDTO.AppointmentRequestDto;
 import com.example.Dosify.dto.ResponseDTO.AppointmentResponseDto;
 import com.example.Dosify.dto.ResponseDTO.CenterResponseDto;
+import com.example.Dosify.dto.ResponseDTO.CerificateResponseDto;
 import com.example.Dosify.exception.DoctorNotFoundException;
 import com.example.Dosify.exception.NotEligibleForDoseException;
 import com.example.Dosify.exception.UserNotFoundException;
@@ -14,12 +16,16 @@ import com.example.Dosify.service.AppointmentService;
 import com.example.Dosify.service.Dose1Service;
 import com.example.Dosify.service.Dose2Service;
 import com.example.Dosify.transformer.VaccinationCenterTransformer;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import java.net.UnknownServiceException;
+import java.io.File;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,7 +34,8 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Autowired
     UserRepository userRepository;
-
+@Autowired
+    PDFGenerator pdfGenerator;
     @Autowired
     DoctorRepository doctorRepository;
 
@@ -38,11 +45,11 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Autowired
     Dose2Service dose2Service;
 
-//    @Autowired
-//    private JavaMailSender emailSender;
+    @Autowired
+    JavaMailSender emailSender;
 
     @Override
-    public AppointmentResponseDto bookAppointment(AppointmentRequestDto appointmentRequestDto) throws UserNotFoundException, DoctorNotFoundException, NotEligibleForDoseException {
+    public AppointmentResponseDto bookAppointment(AppointmentRequestDto appointmentRequestDto) throws UserNotFoundException, DoctorNotFoundException, NotEligibleForDoseException, MessagingException {
 
         Optional<User> optionalUser = userRepository.findById(appointmentRequestDto.getUserId());
         if(!optionalUser.isPresent()){
@@ -81,20 +88,48 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .build();
 
         user.getAppointments().add(appointment);
+        Certificate certificate=Certificate.builder()
+        .appointmentNo(appointment.getAppointmentNo())
+                .doseNo(appointment.getDoseNo())
+                .isDose1taken(user.isDose1Taken())
+                .isDose2taken(user.isDose2Taken())
+                .user(user)
+                .build();
+        user.setCertificate(certificate);
         User savedUser = userRepository.save(user); // save dose1/dose2 and appointment
 
         Appointment savedAppointment = savedUser.getAppointments().get(savedUser.getAppointments().size()-1);
         doctor.getAppointments().add(savedAppointment);
         doctorRepository.save(doctor);
 
-        // send email
-//        String text = "Congrats!!" + user.getName() + " Your dose "+ appointmentRequestDto.getDoseNo() + " has been booked!!";
-//        SimpleMailMessage message = new SimpleMailMessage();
-//        message.setFrom("backendmaydosify@gmail.com");
-//        message.setTo(user.getEmailId());
-//        message.setSubject("Appointment Booked !!!");
-//        message.setText(text);
-//        emailSender.send(message);
+          if(pdfGenerator==null)
+              System.out.print("hdsklhda");
+          else{
+              System.out.print("No");
+          }
+        pdfGenerator.generatePdfReport(user);
+
+
+
+//         send email
+
+        String text = "Congrats!!" + user.getName() + " Your dose "+ appointmentRequestDto.getDoseNo() + " has been booked!!";
+//
+
+        MimeMessage message = emailSender.createMimeMessage();
+
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        helper.setFrom("shijinv49@gmail.com");
+        helper.setTo(user.getEmailId());
+        helper.setSubject("Appointment Booked !!!");
+        helper.setText(text);
+
+        FileSystemResource file
+                = new FileSystemResource(new File("D:/PdfReportRepo/AppointmentCertificate"));
+        helper.addAttachment("Invoice", file);
+
+        emailSender.send(message);
 
 
         // prepare response dto
