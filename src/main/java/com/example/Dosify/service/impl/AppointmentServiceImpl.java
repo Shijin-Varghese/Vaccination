@@ -49,7 +49,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     JavaMailSender emailSender;
 
     @Override
-    public AppointmentResponseDto bookAppointment(AppointmentRequestDto appointmentRequestDto) throws UserNotFoundException, DoctorNotFoundException, NotEligibleForDoseException, MessagingException {
+    public AppointmentResponseDto bookAppointment(AppointmentRequestDto appointmentRequestDto) throws Exception {
 
         Optional<User> optionalUser = userRepository.findById(appointmentRequestDto.getUserId());
         if(!optionalUser.isPresent()){
@@ -65,6 +65,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         Doctor doctor = optionalDoctor.get();
 
         if(appointmentRequestDto.getDoseNo()== DoseNo.DOSE_1){
+            if(user.isDose1Taken())
+                  throw new Exception("Dose1 already taken");
             Dose1 dose1 = dose1Service.createDose1(user,appointmentRequestDto.getVaccineType());
             user.setDose1Taken(true);
             user.setDose1(dose1);
@@ -74,7 +76,8 @@ public class AppointmentServiceImpl implements AppointmentService {
             if(!user.isDose1Taken()){
                 throw new NotEligibleForDoseException("Sorry! You are not yet eligible for Dose 2");
             }
-
+            if(user.isDose2Taken())
+                throw new Exception("Dose2 already taken");
             Dose2 dose2 = dose2Service.createDose2(user,appointmentRequestDto.getVaccineType());
             user.setDose2Taken(true);
             user.setDose2(dose2);
@@ -86,7 +89,6 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .user(user)
                 .doctor(doctor)
                 .build();
-
         user.getAppointments().add(appointment);
         Certificate certificate=Certificate.builder()
         .appointmentNo(appointment.getAppointmentNo())
@@ -96,25 +98,21 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .user(user)
                 .build();
         user.setCertificate(certificate);
-        User savedUser = userRepository.save(user); // save dose1/dose2 and appointment
+        User savedUser = userRepository.save(user); // save dose1/dose2/certificate and appointment
 
-        Appointment savedAppointment = savedUser.getAppointments().get(savedUser.getAppointments().size()-1);
+        Appointment savedAppointment = savedUser
+                .getAppointments()
+                .get(savedUser.getAppointments().size()-1);
         doctor.getAppointments().add(savedAppointment);
         doctorRepository.save(doctor);
-
           if(pdfGenerator==null)
               System.out.print("hdsklhda");
           else{
               System.out.print("No");
           }
-        pdfGenerator.generatePdfReport(user);
-
-
-
-//         send email
-
+        String address=pdfGenerator.generatePdfReport(appointment);
+        System.out.println(address);
         String text = "Congrats!!" + user.getName() + " Your dose "+ appointmentRequestDto.getDoseNo() + " has been booked!!";
-//
 
         MimeMessage message = emailSender.createMimeMessage();
 
@@ -126,14 +124,13 @@ public class AppointmentServiceImpl implements AppointmentService {
         helper.setText(text);
 
         FileSystemResource file
-                = new FileSystemResource(new File("D:/PdfReportRepo/AppointmentCertificate"));
+                = new FileSystemResource(new File(address));
         helper.addAttachment("Invoice", file);
-
         emailSender.send(message);
-
-
         // prepare response dto
-        CenterResponseDto centerResponseDto = VaccinationCenterTransformer.CenterToCenterResponseDto(doctor.getVaccinationCenter());
+        CenterResponseDto centerResponseDto
+                = VaccinationCenterTransformer
+                .CenterToCenterResponseDto(doctor.getVaccinationCenter());
 
         return AppointmentResponseDto.builder()
                 .userName(user.getName())

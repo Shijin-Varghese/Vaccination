@@ -18,14 +18,18 @@ public class Certificate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
+
     String appointmentNo;
     @CreationTimestamp
     Date dateOfAppointment;
 
     @Enumerated(EnumType.STRING)
     DoseNo doseNo;
+
     boolean isDose1taken;
+
     boolean isDose2taken;
+
     @OneToOne
     @JoinColumn
     User user;

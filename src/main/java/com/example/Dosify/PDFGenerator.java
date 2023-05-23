@@ -4,9 +4,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
+import com.example.Dosify.model.Appointment;
 import com.example.Dosify.model.Certificate;
 import com.example.Dosify.model.User;
 import com.example.Dosify.repository.CertificateRepository;
@@ -55,27 +59,27 @@ public class PDFGenerator {
     private static Font COURIER_SMALL = new Font(Font.FontFamily.COURIER, 16, Font.BOLD);
     private static Font COURIER_SMALL_FOOTER = new Font(Font.FontFamily.COURIER, 12, Font.BOLD);
 
-    public void generatePdfReport(User user) {
+    public String generatePdfReport(Appointment app) {
 
         Document document = new Document();
 
         try {
-            PdfWriter.getInstance(document, new FileOutputStream(getPdfNameWithDate()));
+            String address=getPdfNameWithDate();
+            PdfWriter.getInstance(document, new FileOutputStream(address));
+
             document.open();
             addDocTitle(document);
-            createTable(document,noOfColumns,user);
+            createTable(document,noOfColumns,app);
             addFooter(document);
             document.close();
             System.out.println("------------------Your PDF Report is ready!-------------------------");
-
+              return address;
         } catch (FileNotFoundException | DocumentException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
+     return "";
     }
-
-
 
     private void addDocTitle(Document document) throws DocumentException {
         String localDateString = LocalDateTime.now().format(DateTimeFormatter.ofPattern(localDateFormat));
@@ -90,7 +94,7 @@ public class PDFGenerator {
 
     }
 
-    private void createTable(Document document, int noOfColumns,User user) throws DocumentException {
+    private void createTable(Document document, int noOfColumns,Appointment app) throws DocumentException {
         Paragraph paragraph = new Paragraph();
         leaveEmptyLine(paragraph, 3);
         document.add(paragraph);
@@ -105,15 +109,17 @@ public class PDFGenerator {
         }
 
         table.setHeaderRows(1);
-        getDbData(table,user);
+        getDbData(table,app);
         document.add(table);
     }
 
-    private void getDbData(PdfPTable table,User user) {
+    private void getDbData(PdfPTable table, Appointment app) {
 
-        Certificate list = certificaterepository.findByUserId(user.getId());
+        Optional<Certificate> cer = certificaterepository.findByAppointmentNo(app.getAppointmentNo());
+              if(cer.isEmpty())
+                   return;
 
-//   AppointmentNo,name,age,dose1,dose2,date
+              Certificate list=cer.get();
             table.setWidthPercentage(100);
             table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_CENTER);
             table.getDefaultCell().setVerticalAlignment(Element.ALIGN_MIDDLE);
@@ -138,9 +144,6 @@ public class PDFGenerator {
                 table.addCell("No");
             }
             table.addCell(""+list.getDateOfAppointment());
-
-
-
     }
 
     private void addFooter(Document document) throws DocumentException {
@@ -162,6 +165,7 @@ public class PDFGenerator {
 
     private String getPdfNameWithDate() {
         String localDateString = LocalDateTime.now().format(DateTimeFormatter.ofPattern(reportFileNameDateFormat));
-        return pdfDir+reportFileName+"-"+localDateString+".pdf";
+        LocalTime myObj = LocalTime.now();
+        return pdfDir+reportFileName+"-"+UUID.randomUUID()+""+".pdf";
     }
 }

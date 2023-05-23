@@ -11,5 +11,5 @@ import java.net.UnknownServiceException;
 
 public interface AppointmentService {
 
-    public AppointmentResponseDto bookAppointment(AppointmentRequestDto appointmentRequestDto) throws UnknownServiceException, UserNotFoundException, DoctorNotFoundException, NotEligibleForDoseException, MessagingException;
+    public AppointmentResponseDto bookAppointment(AppointmentRequestDto appointmentRequestDto) throws Exception;
 }

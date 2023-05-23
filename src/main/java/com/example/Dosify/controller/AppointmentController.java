@@ -22,9 +22,14 @@ public class AppointmentController {
     AppointmentService appointmentService;
 
     @PostMapping("/book")
-    public AppointmentResponseDto bookAppointment(@RequestBody AppointmentRequestDto appointmentRequestDto) throws UserNotFoundException, DoctorNotFoundException, UnknownServiceException, NotEligibleForDoseException, MessagingException {
-
-        return appointmentService.bookAppointment(appointmentRequestDto);
+    public ResponseEntity bookAppointment(@RequestBody AppointmentRequestDto appointmentRequestDto) throws Exception {
+          try{
+              AppointmentResponseDto res=appointmentService.bookAppointment(appointmentRequestDto);
+              return new ResponseEntity(res,HttpStatus.OK);
+          }
+        catch(Exception e){
+            return new ResponseEntity(e.getMessage(),HttpStatus.OK);
+        }
     }
 
     // generate certificate
